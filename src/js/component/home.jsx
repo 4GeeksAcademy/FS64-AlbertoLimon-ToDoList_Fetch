@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/home.css';
 
 function Home() {
-    const url = "https://playground.4geeks.com/todo/users/alberto_l"
+    const urlGet = "https://playground.4geeks.com/todo/users/alberto_l"
+    const urlPost = "https://playground.4geeks.com/todo/todos/alberto_l"
+    const urlDelete = "https://playground.4geeks.com/todo/todos"
     
     const [inputState, setInputState] = useState('');
     const [listaOriginal, setListaOriginal] = useState([]);
@@ -17,7 +19,7 @@ function Home() {
             });
             setListaFiltrada(estadoActualizado);
         }
-    }, [listaOriginal, inputState]);
+    }, [listaOriginal, inputState]);  
 
     const agregarNuevoMiembro = () => {
         setListaOriginal([...listaOriginal, { name: textoNuevo }]);
@@ -31,49 +33,21 @@ function Home() {
 
 
 
-    const fetchTareas = async (setState) => {
-        const data = await fetch(
-          'https://playground.4geeks.com/todo/users/alberto_l'
-        ).then((res) => res.json());
-      
-        setState(data.todos);
-      };
-      
-      const ToDoList = () => {
-        const [tareas, setTareas] = useState([]);
-        useEffect(() => {
-          fetchTareas(setTareas);
-        }, []);
-        return (
-          <>
-            <ul>
-              {tareas.map((tarea, index) => (
-                <li key={index}>
-                    {tarea.label}
-                    <button className='eliminar' onClick={() => eliminarTarea(index)}>
-                        <i className='fas fa-times'></i>
-                    </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        );
-      };
+    
     
 
 
     const addTodo = async (label) => {
-        fetch(`${url}`, {
-      method: "POST",
-      body: JSON.stringify(tareas),
-      headers: {
-        "Content-Type": "application/json"
+        fetch(`${urlPost}`, {
+        method: "POST",
+        body: JSON.stringify({
+          "label": label, "is_done": false
+        }),
+        headers: {
+          "Content-Type": "application/json"
       }
     })
     .then(resp => {
-        console.log(resp.ok);
-        console.log(resp.status); 
-        console.log(resp.text()); 
         return resp.json(); 
     })
     .then(data => {
@@ -85,6 +59,51 @@ function Home() {
     });
     }
 
+    const deleteTodo = async (idTarea) => {
+      console.log(idTarea)
+      const response = await fetch(`${urlDelete}/${idTarea}` , {
+        method: 'DELETE',
+      });
+      if(response.ok){
+        const data = await response.json();
+        return data;
+      } else {
+        console.log('error: ', response.status, response.statusText);
+        /* Realiaza el tratamiento del error que devolvió el request HTTP */
+        return {error: {status: response.status, statusText: response.statusText}};
+      };
+    }
+
+    const fetchTareas = async (setState) => {
+      const data = await fetch(
+        `${urlGet}`
+      ).then((res) => res.json());
+      console.log(data)
+      setState(data.todos);
+    };
+    
+    const ToDoList = () => {
+      const [tareas, setTareas] = useState([]);
+      useEffect(() => {
+        fetchTareas(setTareas);
+      }, []);
+      return (
+        <>
+          <ul>
+            {tareas.map((tarea, index) => (
+              <li key={index}>
+                  {tarea.label}
+                  
+                  <button className='eliminar' onClick={() => deleteTodo(tarea.id)}>
+                      <i className='fas fa-times'></i>
+                  </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    };
+
     return (
         <div className="background">
             <div className="task-list-container">
@@ -95,8 +114,9 @@ function Home() {
                         id=""
                         onChange={(event) => setTextoNuevo(event.target.value)}
                         value={textoNuevo}
+                        
                     />
-                    <button className='agregar' onClick={agregarNuevoMiembro}>Agregar</button>
+                    <button className='agregar' onClick={addTodo(textoNuevo)}>Agregar</button>
                     
                     <ToDoList />
                 
