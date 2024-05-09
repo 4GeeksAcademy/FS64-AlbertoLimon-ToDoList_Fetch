@@ -34,9 +34,23 @@ function Home() {
     };
     */
 
+    const [tareas, setTareas] = useState([]);
+      useEffect(() => {
+        fetchTareas();
+      }, [tareas]);
     
     
-
+      const fetchTareas = async () => {
+        const response = await fetch(`${urlGet}` , {
+          method: 'GET'
+        });
+        if(response.ok){
+          const data = await response.json();
+          setCountTodos(data.todos.length)
+          setTareas(data.todos);
+        };
+        
+      };
 
     const addTodo = async (label) => {
       console.log("añadir ", label)
@@ -51,7 +65,9 @@ function Home() {
     })
     if(response.ok){
       const data = await response.json();
+      setTextoNuevo('');
       return data;
+      
     } else {
       console.log('error: ', response.status, response.statusText);
       /* Realiaza el tratamiento del error que devolvió el request HTTP */
@@ -77,24 +93,10 @@ function Home() {
       };
     }
 
-    const fetchTareas = async (setState) => {
-      const response = await fetch(`${urlGet}` , {
-        method: 'GET'
-      });
-      if(response.ok){
-        const data = await response.json();
-        setCountTodos(data.todos.length)
-        setState(data.todos);
-      };
-      
-    };
+    
     
     const ToDoList = () => {
-      const [tareas, setTareas] = useState([]);
-      useEffect(() => {
-        
-        fetchTareas(setTareas);
-      }, []);
+      
       return (
         <>
           <ul>
