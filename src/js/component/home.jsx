@@ -6,12 +6,17 @@ function Home() {
     const urlPost = "https://playground.4geeks.com/todo/todos/alberto_l"
     const urlDelete = "https://playground.4geeks.com/todo/todos"
     
+
+    const [textoNuevo, setTextoNuevo] = useState('');
+    const [countTodos, setCountTodos] = useState(0);
+
+    //CODIGO USADO PARA TRABAJAR EN LOCAL
+    /*
     //const [inputState, setInputState] = useState('');
     //const [listaOriginal, setListaOriginal] = useState([]);
     //const [listaFiltrada, setListaFiltrada] = useState([]);
-    const [textoNuevo, setTextoNuevo] = useState('');
-    const [countTodos, setCountTodos] = useState(0);
-/*
+    
+
     useEffect(() => {
         if (inputState === '') setListaFiltrada(listaOriginal);
         if (inputState !== '') {
@@ -21,8 +26,8 @@ function Home() {
             setListaFiltrada(estadoActualizado);
         }
     }, [listaOriginal, inputState]);  
-*/
-    /*
+
+    
     const agregarNuevoMiembro = () => {
         setListaOriginal([...listaOriginal, { name: textoNuevo }]);
         setTextoNuevo('');
@@ -37,7 +42,7 @@ function Home() {
     const [tareas, setTareas] = useState([]);
       useEffect(() => {
         fetchTareas();
-      }, [tareas]);
+      }, []);
     
     
       const fetchTareas = async () => {
@@ -45,14 +50,24 @@ function Home() {
           method: 'GET'
         });
         if(response.ok){
-          const data = await response.json();
-          setCountTodos(data.todos.length)
-          setTareas(data.todos);
-        };
+          try{
+            const data = await response.json();
+            setCountTodos(data.todos ? data.todos.length:0)
+            setTareas(data.todos);
+          }
+          catch(error){
+            console.log("error en la respuesta");
+          }
+          
+        }else{
+          console.log("error al obtener datos")
+        }
         
       };
 
+
     const addTodo = async (label) => {
+      
       console.log("añadir ", label)
         const response = await fetch(`${urlPost}`, {
         method: "POST",
@@ -64,9 +79,10 @@ function Home() {
       }
     })
     if(response.ok){
-      const data = await response.json();
+      
+      fetchTareas();
       setTextoNuevo('');
-      return data;
+
       
     } else {
       console.log('error: ', response.status, response.statusText);
@@ -74,6 +90,7 @@ function Home() {
       return {error: {status: response.status, statusText: response.statusText}};
     };
   }
+
 
     const deleteTodo = async (idTarea) => {
       console.log(idTarea)
@@ -84,8 +101,9 @@ function Home() {
          },
       });
       if(response.ok){
-        const data = await response.json();
-        return data;
+        
+        fetchTareas();
+
       } else {
         console.log('error: ', response.status, response.statusText);
         /* Realiaza el tratamiento del error que devolvió el request HTTP */
