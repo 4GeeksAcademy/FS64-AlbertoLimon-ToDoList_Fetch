@@ -6,11 +6,12 @@ function Home() {
     const urlPost = "https://playground.4geeks.com/todo/todos/alberto_l"
     const urlDelete = "https://playground.4geeks.com/todo/todos"
     
-    const [inputState, setInputState] = useState('');
-    const [listaOriginal, setListaOriginal] = useState([]);
-    const [listaFiltrada, setListaFiltrada] = useState([]);
+    //const [inputState, setInputState] = useState('');
+    //const [listaOriginal, setListaOriginal] = useState([]);
+    //const [listaFiltrada, setListaFiltrada] = useState([]);
     const [textoNuevo, setTextoNuevo] = useState('');
-
+    const [countTodos, setCountTodos] = useState(0);
+/*
     useEffect(() => {
         if (inputState === '') setListaFiltrada(listaOriginal);
         if (inputState !== '') {
@@ -20,7 +21,8 @@ function Home() {
             setListaFiltrada(estadoActualizado);
         }
     }, [listaOriginal, inputState]);  
-
+*/
+    /*
     const agregarNuevoMiembro = () => {
         setListaOriginal([...listaOriginal, { name: textoNuevo }]);
         setTextoNuevo('');
@@ -30,15 +32,15 @@ function Home() {
         const nuevaLista = listaOriginal.filter((_, i) => i !== index);
         setListaOriginal(nuevaLista);
     };
-
-
+    */
 
     
     
 
 
     const addTodo = async (label) => {
-        fetch(`${urlPost}`, {
+      console.log("añadir ", label)
+        const response = await fetch(`${urlPost}`, {
         method: "POST",
         body: JSON.stringify({
           "label": label, "is_done": false
@@ -47,22 +49,23 @@ function Home() {
           "Content-Type": "application/json"
       }
     })
-    .then(resp => {
-        return resp.json(); 
-    })
-    .then(data => {
-        console.log(data); 
-    })
-    .catch(error => {
-        // Manejo de errores
-        console.log(error);
-    });
-    }
+    if(response.ok){
+      const data = await response.json();
+      return data;
+    } else {
+      console.log('error: ', response.status, response.statusText);
+      /* Realiaza el tratamiento del error que devolvió el request HTTP */
+      return {error: {status: response.status, statusText: response.statusText}};
+    };
+  }
 
     const deleteTodo = async (idTarea) => {
       console.log(idTarea)
       const response = await fetch(`${urlDelete}/${idTarea}` , {
         method: 'DELETE',
+        headers: {
+          'Content-type': 'application/json'
+         },
       });
       if(response.ok){
         const data = await response.json();
@@ -75,16 +78,21 @@ function Home() {
     }
 
     const fetchTareas = async (setState) => {
-      const data = await fetch(
-        `${urlGet}`
-      ).then((res) => res.json());
-      console.log(data)
-      setState(data.todos);
+      const response = await fetch(`${urlGet}` , {
+        method: 'GET'
+      });
+      if(response.ok){
+        const data = await response.json();
+        setCountTodos(data.todos.length)
+        setState(data.todos);
+      };
+      
     };
     
     const ToDoList = () => {
       const [tareas, setTareas] = useState([]);
       useEffect(() => {
+        
         fetchTareas(setTareas);
       }, []);
       return (
@@ -116,12 +124,12 @@ function Home() {
                         value={textoNuevo}
                         
                     />
-                    <button className='agregar' onClick={addTodo(textoNuevo)}>Agregar</button>
+                    <button className='agregar' onClick={() => addTodo(textoNuevo)}>Agregar</button>
                     
                     <ToDoList />
                 
-					<div className="task-counter">
-                        Tareas: {listaFiltrada.length} 
+					          <div className="task-counter">
+                        Tareas: {countTodos} 
                     </div>
             </div>
 				
